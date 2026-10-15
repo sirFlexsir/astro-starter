@@ -1,0 +1,92 @@
+---
+import { getImage } from 'astro:assets';
+
+const { mobileImgUrl, desktopImgUrl, alt, isHero } = Astro.props;
+
+/*
+  Шпаргалка по картинкам в проекте.
+
+  1. Разные пропорции на разных ширинах экрана (art direction) — этот компонент:
+     <picture> + <source media="..." srcset="..." width height /> + <img> как фолбэк.
+     width/height задаём и у <source>, и у <img>: браузер берёт пропорции
+     из первого подошедшего <source>, чтобы страница не «прыгала» при загрузке.
+
+  2. Фиксированное изображение, размер не меняется:
+     <Image src={img} width={950} densities={[1.5, 2]} alt="Картинка" />
+
+  3. Гибкое изображение, тянется за контейнером:
+     <Image
+       src={img}
+       widths={[480, 950, 1425, 1900]}
+       sizes="(max-width: 950px) 100vw, 950px"
+       alt="Картинка"
+     />
+*/
+
+// 1. Генерируем оптимизированное мобильное изображение (315x490)
+const mobileImg2x = await getImage({
+  src: mobileImgUrl,
+  format: 'webp',
+  width: 630,
+  height: 980,
+});
+
+// Мобильная Retina (630x980 - ровно в 2 раза больше)
+const mobile = await getImage({
+  src: mobileImgUrl,
+  format: 'webp',
+  width: 315,
+  height: 490,
+});
+
+// 2. Генерируем оптимизированное десктопное изображение (950x535)
+const desktopImg2x = await getImage({
+  src: desktopImgUrl,
+  format: 'webp',
+  width: 1900,
+  height: 1070,
+});
+
+const desktop = await getImage({
+  src: desktopImgUrl,
+  format: 'webp',
+  width: 950,
+  height: 535,
+});
+---
+
+<picture>
+  {/* Для мобильных экранов (например, до 767px) отдаем мобильную версию */}
+
+  <source
+    media="(max-width: 560px)"
+    srcset={`${mobile.src} 1x, ${mobileImg2x.src} 2x`}
+    width="315"
+    height="490"
+  />
+
+  {/* Для десктопов и планшетов (от 768px) отдаем десктопную версию */}
+  <source
+    media="(min-width: 560px)"
+    srcset={`${desktop.src} 1x, ${desktopImg2x.src} 2x`}
+    width="950"
+    height="535"
+  />
+
+  {/* Fallback (дефолтный img тег) */}
+  <img
+    src={desktop.src}
+    alt={alt}
+    width="950"
+    height="535"
+    loading={isHero ? 'eager' : 'lazy'}
+    fetchpriority={isHero ? 'high' : 'auto'}
+  />
+</picture>
+
+<style lang="scss">
+  img,
+  picture {
+    width: 100%;
+  }
+</style>

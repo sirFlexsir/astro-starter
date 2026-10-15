@@ -1,0 +1,53 @@
+@layer reset {
+  // Кастомный сброс стилей
+
+  /*  защита от багов iOS и Android */
+  html {
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    height: auto;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ul,
+  ol {
+    list-style: none;
+    padding: 0;
+  }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  /* Убираем синее/серое мерцание при тапе на тачскринах */
+  button,
+  a,
+  input,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Убираем синюю рамку фокуса при клике мышью, но сохраняем для клавиатуры (Tab) */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}

@@ -1,0 +1,47 @@
+$mobile: 560px;
+$min-mobile: 375px;
+$container: 950px;
+
+// min-mobile 375  container 315
+
+@mixin mobile-down {
+  @media (width <= $mobile) {
+    @content;
+  }
+}
+
+@mixin mobile-up {
+  @media (width > $mobile) {
+    @content;
+  }
+}
+
+// Скрытие для доступности и SEO
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Растягивание на весь родительский блок
+@mixin absolute-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// Чтобы ховер н не марасил если  тыкаем в его чем нибуть твердым
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
