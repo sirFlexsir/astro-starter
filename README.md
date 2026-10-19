@@ -55,12 +55,16 @@ src/
     _reset.scss         сброс (Josh Comeau)
     _custom-reset.scss  доп. сброс под нужды вёрстки
     _base.scss          базовые стили (пока пусто — это место для них)
-    _mixins.scss        миксины, доступны в любом <style lang="scss"> без @use
+    helpers/
+      _index.scss       барель хелперов: @forward остальных файлов папки
+      _media.scss       брейкпоинты и переменные $mobile, $min-mobile, $container
+      _mixins.scss      миксины (media-хелперы, hover, visually-hidden, absolute-cover)
+      _functions.scss   функции (пока пусто)
 ```
 
 ## Как это устроено
 
-**Миксины.** В `astro.config.mjs` настроен `vite.css.preprocessorOptions.scss.additionalData`, который подставляет `@use "/src/styles/_mixins.scss" as *` в каждый SCSS-блок. Поэтому в компоненте пишем сразу:
+**Хелперы.** В `astro.config.mjs` настроен `vite.css.preprocessorOptions.scss.additionalData`, который подставляет `@use "/src/styles/helpers/_index.scss" as *` в каждый SCSS-блок, который компилирует Vite (то есть в `global.scss` и в `<style lang="scss">` компонентов). Поэтому в компоненте пишем сразу:
 
 ```scss
 .card {
@@ -74,7 +78,9 @@ src/
 }
 ```
 
-Есть: `mobile-down` / `mobile-up` (граница 560px), `hover` (только мышь, не тач), `visually-hidden`, `absolute-cover`. Переменные: `$mobile` (560px), `$min-mobile` (375px), `$container` (950px). Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
+Хелперы разложены по файлам в `src/styles/helpers/`, наружу их отдаёт `_index.scss` через `@forward`. Новый модуль: создать `_имя.scss` рядом, добавить `@forward 'имя';` в `_index.scss`, а зависимости самого модуля подключить `@use` внутри него (порядок `@forward` в барели соседние файлы друг другу не видит). В partials, которые грузятся через `@use` из `global.scss` (например `_base.scss`), автоподстановки нет — там пишем `@use './helpers/index' as *;` явно.
+
+Есть: `mobile-down` / `mobile-up` (граница 560px), `hover` (только мышь, не тач), `visually-hidden`, `absolute-cover`. Переменные: `$mobile` (560px), `$min-mobile` (375px), `$container` (950px) — в `helpers/_media.scss`. Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
 
 **Слои.** Порядок объявлен один раз в `_layers.scss`: `@layer reset, base;` — правила из `reset` слабее, чем из `base`. Всё, что написано в `<style>` компонента, идёт **вне слоёв** и перебивает и reset, и base, без выкручивания специфичности. Новый слой добавляем в строку объявления по возрастанию приоритета и заводим под него partial с `@use` в `global.scss`.
 

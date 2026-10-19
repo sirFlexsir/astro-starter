@@ -34,13 +34,14 @@ npm run astro -- <cmd> # прямой доступ к CLI Astro
 - `src/components/` — `Header`, `Footer`, `ArtDirectedImage`
 - `src/assets/` — картинки для обработки Astro (импортируются в код)
 - `public/` — статика как есть (`favicon.svg`, `og-image.webp`)
-- `src/styles/` — `global.scss` (точка входа) + partials `_layers`, `_reset`, `_custom-reset`, `_base`, `_mixins`
+- `src/styles/` — `global.scss` (точка входа) + partials `_layers`, `_reset`, `_custom-reset`, `_base`
+- `src/styles/helpers/` — модули-хелперы: `_index.scss` (барель через `@forward`), `_media.scss` (брейкпоинты), `_mixins.scss`, `_functions.scss`. Подключаются автоматически, см. «Правила стилей»
 
 <!-- ЗАПОЛНИТЬ: что появилось в проекте сверх каркаса — нестандартные папки, интеграции, данные из CMS и т.п. -->
 
 ## Правила стилей
 
-**Миксины подставляются автоматически.** В `astro.config.mjs` настроен `vite.css.preprocessorOptions.scss.additionalData`, который добавляет `@use "src/styles/_mixins.scss" as *` в каждый SCSS-блок. Поэтому в `<style lang="scss">` компонента не нужно писать `@use` для миксинов — они уже доступны:
+**Хелперы подставляются автоматически.** В `astro.config.mjs` настроен `vite.css.preprocessorOptions.scss.additionalData`, который добавляет `@use "/src/styles/helpers/_index.scss" as *` в каждый SCSS-блок, компилируемый Vite. Поэтому в `<style lang="scss">` компонента и в `global.scss` не нужно писать `@use` для миксинов и переменных — они уже доступны:
 
 ```scss
 .card {
@@ -50,7 +51,11 @@ npm run astro -- <cmd> # прямой доступ к CLI Astro
 }
 ```
 
-Есть `mobile-down` / `mobile-up`, `hover` (только устройства с мышью), `visually-hidden`, `absolute-cover`; переменные `$mobile`, `$min-mobile`, `$container`. Не вводить новые брейкпоинты и не писать `@media (max-width: ...)` руками — использовать миксины.
+Строка не подставляется в partials, которые подключаются через `@use` из `global.scss` (`_base.scss` и т.п.) — там нужен явный `@use './helpers/index' as *;`.
+
+Новый модуль хелперов: создать `src/styles/helpers/_имя.scss`, добавить `@forward 'имя';` в `_index.scss`, а его собственные зависимости прописать `@use` внутри него самого. Порядок `@forward` в барели не делает переменные соседних модулей видимыми — например, `_mixins.scss` сам пишет `@use 'media' as *;`, иначе `$mobile` внутри миксина не определён. Всё, что отдаётся наружу (миксины, функции, переменные), в подключаемых файлах объявляется обычными `@mixin` / `@function` / `$var` — `@forward` их пробрасывает сам, дублировать `@forward` в `_index.scss` для переменных не нужно.
+
+Есть `mobile-down` / `mobile-up`, `hover` (только устройства с мышью), `visually-hidden`, `absolute-cover`; переменные `$mobile`, `$min-mobile`, `$container` (живут в `helpers/_media.scss`). Не вводить новые брейкпоинты и не писать `@media (max-width: ...)` руками — использовать миксины.
 
 **Слои.** Порядок объявлен один раз в `_layers.scss` (`@layer reset, base;`): правила из `reset` слабее, чем из `base`. Стили в `<style>` компонента идут **вне слоёв** и перебивают и reset, и base — если нужно переопределить базовый стиль, пиши его прямо в компоненте, специфичность выкручивать не нужно. Новый слой: добавить имя в строку объявления по возрастанию приоритета, завести partial и подключить его через `@use` в `global.scss`.
 

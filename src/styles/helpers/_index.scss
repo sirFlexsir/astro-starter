@@ -1,0 +1,7 @@
+// Единая точка входа хелперов: подключается автоматически в каждый SCSS-блок
+// через vite.css.preprocessorOptions.scss.additionalData в astro.config.mjs.
+// Новый модуль добавляй сюда через @forward, а его зависимости — через @use
+// в нём самом: порядок @forward не пробрасывает переменные соседним файлам.
+@forward 'functions';
+@forward 'media';
+@forward 'mixins';

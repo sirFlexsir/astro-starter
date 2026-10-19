@@ -1,8 +1,6 @@
-$mobile: 560px;
-$min-mobile: 375px;
-$container: 950px;
-
-// min-mobile 375  container 315
+// Зависимости подключаем здесь же: @forward в _index.scss не делает переменные
+// соседних модулей видимыми внутри этого файла.
+@use 'media' as *;
 
 @mixin mobile-down {
   @media (width <= $mobile) {
@@ -37,7 +35,7 @@ $container: 950px;
   height: 100%;
 }
 
-// Чтобы ховер н не марасил если  тыкаем в его чем нибуть твердым
+// Ховер только для устройств с мышью — на тач-экране не срабатывает
 @mixin hover {
   @media (hover: hover) and (pointer: fine) {
     &:hover {
