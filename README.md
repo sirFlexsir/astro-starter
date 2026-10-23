@@ -57,9 +57,9 @@ src/
     _base.scss          базовые стили (пока пусто — это место для них)
     helpers/
       _index.scss       барель хелперов: @forward остальных файлов папки
-      _media.scss       брейкпоинты и переменные $mobile, $min-mobile, $container
+      _media.scss       брейкпоинты: $laptop 1440px, $tablet 1024px, $mobile 768px, $mobile-s 480px
       _mixins.scss      миксины (media-хелперы, hover, visually-hidden, absolute-cover)
-      _functions.scss   функции (пока пусто)
+      _functions.scss   функции: fluid() — плавные значения, _round() — приватное округление
 ```
 
 ## Как это устроено
@@ -75,12 +75,16 @@ src/
   @include hover {
     color: red;
   }
+
+  gap: fluid(16px, 24px); // 16px при 390px → 24px при 1920px
 }
 ```
 
 Хелперы разложены по файлам в `src/styles/helpers/`, наружу их отдаёт `_index.scss` через `@forward`. Новый модуль: создать `_имя.scss` рядом, добавить `@forward 'имя';` в `_index.scss`, а зависимости самого модуля подключить `@use` внутри него (порядок `@forward` в барели соседние файлы друг другу не видит). В partials, которые грузятся через `@use` из `global.scss` (например `_base.scss`), автоподстановки нет — там пишем `@use './helpers/index' as *;` явно.
 
-Есть: `mobile-down` / `mobile-up` (граница 560px), `hover` (только мышь, не тач), `visually-hidden`, `absolute-cover`. Переменные: `$mobile` (560px), `$min-mobile` (375px), `$container` (950px) — в `helpers/_media.scss`. Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
+Есть миксины: `mobile-down` / `mobile-up` (граница `$mobile` = 768px), `hover` (только мышь, не тач), `visually-hidden`, `absolute-cover`. Переменные брейкпоинтов: `$laptop` (1440px), `$tablet` (1024px), `$mobile` (768px), `$mobile-s` (480px) — в `helpers/_media.scss`. Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
+
+**`fluid()` — плавные значения.** В `helpers/_functions.scss` лежит `fluid($min, $max, $screen-min: 390px, $screen-max: 1920px)`; возвращает `clamp()`, который на границах диапазона даёт ровно `$min` и `$max`, как в макете (`font-size: fluid(16px, 24px)` → 16px при 390px и 24px при 1920px). Работает и на убывание (`fluid(40px, 24px)`), и со своим диапазоном экранов (`fluid(8px, 16px, 768px, 1440px)`). Единицы должны совпадать у всех четырёх аргументов — либо всё в `px`, либо всё в `rem` (для `rem` экраны тоже в `rem`: `fluid(1rem, 2rem, 24rem, 120rem)`); безразмерный `0` разрешён, а `line-height` и прочие безразмерные множители — нет. `vw` считается от окна, не от контейнера. Дефолтный диапазон 390…1920 под макет меняется в сигнатуре функции, а не аргументами в каждом вызове. В CSS уходит округлённое до 4 знаков `clamp(16px, calc(13.9608px + 0.5229vw), 24px)`.
 
 **Слои.** Порядок объявлен один раз в `_layers.scss`: `@layer reset, base;` — правила из `reset` слабее, чем из `base`. Всё, что написано в `<style>` компонента, идёт **вне слоёв** и перебивает и reset, и base, без выкручивания специфичности. Новый слой добавляем в строку объявления по возрастанию приоритета и заводим под него partial с `@use` в `global.scss`.
 
