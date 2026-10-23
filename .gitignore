@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# настройки редактора — личные, в репозиторий не кладём
+.vscode/
