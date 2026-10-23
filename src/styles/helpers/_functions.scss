@@ -1,0 +1,80 @@
+@use 'sass:math';
+
+// *****************************************************************
+
+// Плавное (fluid) значение: растёт от $min до $max вместе с шириной экрана.
+// В отличие от «clamp($min, Xvw, $max) наугад» даёт точные значения на краях
+// диапазона — ровно те, что нарисованы в макете.
+//
+// fluid(16px, 24px)                → 16px при 390px, 24px при 1920px (дефолт)
+// fluid(16px, 24px, 767px, 1023px) → свой диапазон экранов
+// fluid(40px, 24px)                → убывает: 40px при 390px, 24px при 1920px
+//
+// $min / $max — границы значений (px или rem, обязательно в одних единицах);
+// $screen-min / $screen-max — границы экранов (по умолчанию 390px … 1920px).
+@function fluid($min, $max, $screen-min: 390px, $screen-max: 1920px) {
+  // Безразмерный 0 — частый случай (нулевой letter-spacing). Приводим к единицам соседа.
+  @if math.is-unitless($min) and $min == 0 {
+    $min: $max * 0;
+  }
+
+  @if math.is-unitless($max) and $max == 0 {
+    $max: $min * 0;
+  }
+
+  // проверки — чтобы ошибка была понятной, а не «Undefined operation»
+  @if math.unit($screen-min) != math.unit($screen-max) {
+    @error 'fluid(): $screen-min (#{$screen-min}) и $screen-max (#{$screen-max}) должны быть в одних единицах.';
+  }
+
+  @if math.unit($min) != math.unit($max) {
+    @error 'fluid(): $min (#{$min}) и $max (#{$max}) должны быть в одних единицах.';
+  }
+
+  @if math.unit($min) != math.unit($screen-min) {
+    @error 'fluid(): значения (#{$min}) и экраны (#{$screen-min}) должны быть в одних единицах — либо всё в px, либо всё в rem.';
+  }
+
+  @if $screen-min == $screen-max {
+    @error 'fluid(): $screen-min и $screen-max не могут быть равны (#{$screen-min}).';
+  }
+
+  // Диапазон нулевой — незачем тащить в CSS calc() с 0vw
+  @if $min == $max {
+    @return $min;
+  }
+
+  // Наклон линии в vw и свободный член: value = $intercept + $slope * 100vw.
+  // Дальше арифметику делает браузер, поэтому в CSS уезжает calc().
+  $slope: math.div($max - $min, $screen-max - $screen-min);
+  $intercept: $min - $slope * $screen-min;
+
+  // clamp(min, value, max) при min > max всегда вернул бы min,
+  // поэтому для убывающих диапазонов границы clamp меняем местами.
+  $clamp-min: $min;
+  $clamp-max: $max;
+  @if $min > $max {
+    $clamp-min: $max;
+    $clamp-max: $min;
+  }
+
+  // Знак наклона выносим оператором, иначе в CSS уедет «calc(a + -2vw)»
+  $operator: '+';
+  @if $slope < 0 {
+    $operator: '-';
+  }
+
+  $shift: math.abs(_round($slope * 100, 4));
+  $preferred: calc(#{_round($intercept, 4)} #{$operator} #{$shift}vw);
+
+  @return clamp(#{$clamp-min}, #{$preferred}, #{$clamp-max});
+}
+
+// *****************************************************************
+
+// Округление до $digits знаков после запятой — для аккуратного вывода в CSS.
+// Подчёркивание делает функцию приватной: наружу из хелперов она не торчит.
+@function _round($number, $digits: 2) {
+  $factor: math.pow(10, $digits);
+  @return math.div(math.round($number * $factor), $factor);
+}
