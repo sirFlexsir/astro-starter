@@ -2,6 +2,32 @@
 // соседних модулей видимыми внутри этого файла.
 @use 'media' as *;
 
+// *****************************************************************
+
+@mixin laptop-down {
+  @media (width <= $laptop) {
+    @content;
+  }
+}
+
+@mixin laptop-up {
+  @media (width > $laptop) {
+    @content;
+  }
+}
+
+@mixin tablet-down {
+  @media (width <= $tablet) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (width > $tablet) {
+    @content;
+  }
+}
+
 @mixin mobile-down {
   @media (width <= $mobile) {
     @content;
@@ -13,6 +39,20 @@
     @content;
   }
 }
+
+@mixin mobile-s-down {
+  @media (width <= $mobile-s) {
+    @content;
+  }
+}
+
+@mixin mobile-s-up {
+  @media (width > $mobile-s) {
+    @content;
+  }
+}
+
+// *****************************************************************
 
 // Скрытие для доступности и SEO
 @mixin visually-hidden {
@@ -35,11 +75,19 @@
   height: 100%;
 }
 
-// Ховер только для устройств с мышью — на тач-экране не срабатывает
-@mixin hover {
-  @media (hover: hover) and (pointer: fine) {
+// Эффект сработает как :hover на ПК и как отклик на нажатие (:active) на мобильных устройствах
+@mixin hover($active-on-mobile: true) {
+  @media (any-hover: hover) {
     &:hover {
       @content;
+    }
+  }
+
+  @if ($active-on-mobile) {
+    @media (any-hover: none) {
+      &:active {
+        @content;
+      }
     }
   }
 }
