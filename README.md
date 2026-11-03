@@ -58,7 +58,8 @@ src/
     helpers/
       _index.scss       барель хелперов: @forward остальных файлов папки
       _media.scss       брейкпоинты: $laptop 1440px, $tablet 1024px, $mobile 768px, $mobile-s 480px
-      _mixins.scss      миксины (media-хелперы, hover, visually-hidden, absolute-cover)
+      _mixins.scss      миксины: media-хелперы, hover, tap-area, abs-center, hide/show,
+                        visually-hidden, absolute-cover
       _functions.scss   функции: fluid() — плавные значения, _round() — приватное округление
 ```
 
@@ -82,9 +83,11 @@ src/
 
 Хелперы разложены по файлам в `src/styles/helpers/`, наружу их отдаёт `_index.scss` через `@forward`. Новый модуль: создать `_имя.scss` рядом, добавить `@forward 'имя';` в `_index.scss`, а зависимости самого модуля подключить `@use` внутри него (порядок `@forward` в барели соседние файлы друг другу не видит). В partials, которые грузятся через `@use` из `global.scss` (например `_base.scss`), автоподстановки нет — там пишем `@use './helpers/index' as *;` явно.
 
-Есть миксины брейкпоинтов, пары `-down` / `-up` на каждую переменную: `laptop-down` / `laptop-up` (1440px), `tablet-down` / `tablet-up` (1024px), `mobile-down` / `mobile-up` (768px), `mobile-s-down` / `mobile-s-up` (480px). Ещё `hover`, `visually-hidden`, `absolute-cover`. Переменные брейкпоинтов: `$laptop` (1440px), `$tablet` (1024px), `$mobile` (768px), `$mobile-s` (480px) — в `helpers/_media.scss`. Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
+Есть миксины брейкпоинтов, пары `-down` / `-up` на каждую переменную: `laptop-down` / `laptop-up` (1440px), `tablet-down` / `tablet-up` (1024px), `mobile-down` / `mobile-up` (768px), `mobile-s-down` / `mobile-s-up` (480px). Ещё `hover`, `visually-hidden`, `absolute-cover` (растянуть на родителя), `abs-center` (центрирование абсолютом), `hide` / `show` (прозрачность + `visibility`) и `tap-area` (кликабельная область не меньше 44px у мелкой иконки). Переменные брейкпоинтов: `$laptop` (1440px), `$tablet` (1024px), `$mobile` (768px), `$mobile-s` (480px) — в `helpers/_media.scss`. Новые брейкпоинты не вводим и `@media (max-width: ...)` руками не пишем — только через миксины.
 
 **`hover($active-on-mobile: true)`** — универсальный отклик: на устройствах с наведением это `:hover` (`@media (any-hover: hover)`), на тач-экранах — `:active` (`@media (any-hover: none)`), поэтому декларации попадают в два медиаблока. `hover(false)` — только мышь, без отклика на тап. На iOS `:active` срабатывает надёжно лишь на `<a>` / `<button>` и элементах с обработчиком касания, не на произвольном `div`.
+
+**`tap-area($size: 44px, $pseudo: after)`** — увеличивает кликабельную зону мелкой иконки или кнопки, не меняя её видимый размер: элементу ставится `position: relative`, а центрированному `::after` — `width`/`height: max(100%, $size)`. 44px — WCAG 2.5.5 (AAA) и гайдлайны Apple/Material, для минимума WCAG 2.5.8 (AA) хватает `tap-area(24px)`; `$pseudo: before` — если `::after` уже занят. Элемент должен быть интерактивным (`<a>`, `<button>`), иначе клик по псевдоэлементу не сработает; `overflow: hidden` у родителя срежет расширенную область, а соседи без зазора начнут перехватывать клики. Если элемент уже позиционирован, свой `position` объявляй после `@include`.
 
 **`fluid()` — плавные значения.** В `helpers/_functions.scss` лежит `fluid($min, $max, $screen-min: 390px, $screen-max: 1920px)`; возвращает `clamp()`, который на границах диапазона даёт ровно `$min` и `$max`, как в макете (`font-size: fluid(16px, 24px)` → 16px при 390px и 24px при 1920px). Работает и на убывание (`fluid(40px, 24px)`), и со своим диапазоном экранов (`fluid(8px, 16px, 768px, 1440px)`). Единицы должны совпадать у всех четырёх аргументов — либо всё в `px`, либо всё в `rem` (для `rem` экраны тоже в `rem`: `fluid(1rem, 2rem, 24rem, 120rem)`); безразмерный `0` разрешён, а `line-height` и прочие безразмерные множители — нет. `vw` считается от окна, не от контейнера. Дефолтный диапазон 390…1920 под макет меняется в сигнатуре функции, а не аргументами в каждом вызове. В CSS уходит округлённое до 4 знаков `clamp(16px, calc(13.9608px + 0.5229vw), 24px)`.
 
