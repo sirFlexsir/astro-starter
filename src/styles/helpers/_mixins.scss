@@ -56,15 +56,33 @@
 
 // Скрытие для доступности и SEO
 @mixin visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@mixin hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@mixin show {
+  opacity: 1;
+  visibility: visible;
+}
+
+// Центрирование через абсолют
+@mixin abs-center {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
 }
 
 // Растягивание на весь родительский блок
@@ -73,6 +91,23 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+// Кликабельная область по стандартам доступности: WCAG 2.5.5 (AAA) и гайдлайны
+// Apple/Material — не меньше 44×44px, WCAG 2.5.8 (AA) — 24×24px.
+// Иконку меньше $size миксин не увеличивает: ::after просто вылезает за её границы
+// по центру, поэтому визуально всё как в макете, а палец попадает.
+// Элементу задаётся position: relative — если он уже позиционирован, объяви
+// своё position после @include, тогда оно перебьёт relative.
+@mixin tap-area($size: 44px, $pseudo: after) {
+  position: relative;
+
+  &::#{$pseudo} {
+    content: '';
+    @include abs-center;
+    width: max(100%, $size);
+    height: max(100%, $size);
+  }
 }
 
 // Эффект сработает как :hover на ПК и как отклик на нажатие (:active) на мобильных устройствах
