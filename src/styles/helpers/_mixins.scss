@@ -54,17 +54,27 @@
 
 // *****************************************************************
 
-// Скрытие для доступности и SEO
-@mixin visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
+// Скрытие для доступности и SEO.
+// $important: true — каждое свойство уезжает с !important, чтобы перебить утилиты
+// и стили вне слоёв. Нужно, когда sr-only-элемент должен победить чужой `position`
+// или `clip`. Минус: `:focus`-состояние тоже придётся писать с !important,
+// поэтому для skip-link и других «показать по фокусу» оставляем false.
+@mixin visually-hidden($important: false) {
+  $flag: '';
+
+  @if $important {
+    $flag: '!important';
+  }
+
+  position: absolute #{$flag};
+  width: 1px #{$flag};
+  height: 1px #{$flag};
+  padding: 0 #{$flag};
+  margin: -1px #{$flag};
+  overflow: hidden #{$flag};
+  clip: rect(0, 0, 0, 0) #{$flag};
+  white-space: nowrap #{$flag};
+  border: 0 #{$flag};
 }
 
 @mixin hide {
